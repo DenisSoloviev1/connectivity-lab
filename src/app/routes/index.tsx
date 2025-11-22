@@ -5,7 +5,7 @@ import { appRouting } from "../config";
 
 const App = lazy(() => import("../index"));
 const Main = lazy(() => import("@/shared/main.page"));
-const Rest = lazy(() => import("@/shared/rest/page"));
+const Rest = lazy(() => import("@/shared/http/page"));
 const Socket = lazy(() => import("@/shared/socket/page"));
 const SSE = lazy(() => import("@/shared/sse/page"));
 const WebRTC = lazy(() => import("@/shared/webRTC/page"));

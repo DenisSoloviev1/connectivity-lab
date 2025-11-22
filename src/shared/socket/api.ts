@@ -1,7 +1,7 @@
-import { io, Socket } from "socket.io-client";
+import { io, Socket } from 'socket.io-client';
 // import { getCookie } from '../utils/cookie';
 
-const API_BASE_SOCKET_URL = import.meta.env.VITE_PUBLIC_API_SOCKET_URL || "";
+const API_BASE_SOCKET_URL = import.meta.env.VITE_PUBLIC_API_SOCKET_URL || '';
 
 /**
  * Singleton class for managing WebSocket connections using Socket.IO
@@ -18,7 +18,6 @@ class SocketInstance {
     callback?: (arg: any) => void;
     timestamp: number;
   }> = [];
-  private subscriptions: Map<string, Array<(data: any) => void>> = new Map();
   private joinedRooms = new Set<string>();
 
   /**
@@ -42,32 +41,15 @@ class SocketInstance {
    * @returns {VoidFunction} Unsubscribe function - call to remove the event listener
    */
   subscribe<T>(event: string, callback: (data: T) => void) {
-    if (!this.subscriptions.has(event)) {
-      this.subscriptions.set(event, []);
-    }
-
-    this.subscriptions.get(event)!.push(callback);
-
     this.connect();
-    if (this.socket && this.socket.connected) {
+
+    if (this.socket) {
       this.socket.on(event, callback);
     }
 
     return () => {
       if (this.socket) {
         this.socket.off(event, callback);
-      }
-
-      const handlers = this.subscriptions.get(event);
-      if (handlers) {
-        this.subscriptions.set(
-          event,
-          handlers.filter((c) => c !== callback)
-        );
-
-        if (this.subscriptions.get(event)!.length === 0) {
-          this.subscriptions.delete(event);
-        }
       }
     };
   }
@@ -101,7 +83,7 @@ class SocketInstance {
     this.connect();
 
     if (this.socket && !this.joinedRooms.has(roomId)) {
-      this.socket.emit("room:join", { roomId });
+      this.socket.emit('room:join', { roomId });
       this.joinedRooms.add(roomId);
     }
   }
@@ -114,7 +96,7 @@ class SocketInstance {
     this.connect();
 
     if (this.socket && this.joinedRooms.has(roomId)) {
-      this.socket.emit("room:leave", { roomId });
+      this.socket.emit('room:leave', { roomId });
       this.joinedRooms.delete(roomId);
     }
   }
@@ -133,7 +115,6 @@ class SocketInstance {
   close() {
     if (this.socket) {
       this.socket.disconnect();
-      this.subscriptions.clear();
       this.joinedRooms.clear();
       this.socket = null;
     }
@@ -154,27 +135,26 @@ class SocketInstance {
         reconnectionDelayMax: 30000,
         randomizationFactor: 0.5,
         withCredentials: true,
-        transports: ["websocket", "polling"],
+        transports: ['websocket', 'polling'],
       });
 
-      this.socket.on("connect_error", (err) => {
-        console.error("Connect error:", err.message);
+      this.socket.on('connect_error', (err) => {
+        console.error('Connect error:', err.message);
       });
 
-      this.socket.on("connect", () => {
-        console.log("✅ Socket connected");
+      this.socket.on('connect', () => {
+        console.log('✅ Socket connected');
         this.flushQueue();
         this.restoreJoinedRooms();
-        this.restoreSubscriptions();
       });
 
-      this.socket.on("reconnect_failed", () => {
-        console.error("❌ Reconnect failed after 10 attempts");
+      this.socket.on('reconnect_failed', () => {
+        console.error('❌ Reconnect failed after 10 attempts');
         this.close();
       });
 
-      this.socket.on("disconnect", () => {
-        console.log("❌ Socket disconnected");
+      this.socket.on('disconnect', () => {
+        console.log('❌ Socket disconnected');
       });
     }
   }
@@ -195,20 +175,6 @@ class SocketInstance {
   }
 
   /**
-   * Restores all event subscriptions when connection is reestablished
-   * @private
-   */
-  private restoreSubscriptions() {
-    if (!this.socket) return;
-
-    this.subscriptions.forEach((callbacks, event) => {
-      callbacks.forEach((callback) => {
-        this.socket!.on(event, callback);
-      });
-    });
-  }
-
-  /**
    * Restores all room memberships when connection is reestablished
    * @private
    */
@@ -216,7 +182,7 @@ class SocketInstance {
     if (!this.socket) return;
 
     this.joinedRooms.forEach((roomId) => {
-      this.socket?.emit("room:join", { roomId });
+      this.socket?.emit('room:join', { roomId });
     });
   }
 }

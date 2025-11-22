@@ -1,4 +1,4 @@
-import { apiInstance } from "./api-instance";
+import { httpInstance } from "./api-instance";
 import { GetParams, GetResponse } from "./types";
 
 /**
@@ -30,7 +30,7 @@ class RestApi {
    * @returns {Promise<GetResponse>} Promise resolving to posts data response
    */
   get({ signal }: GetParams) {
-    return apiInstance<GetResponse>({
+    return httpInstance<GetResponse>({
       path: `${this.baseUrl}`,
       signal,
     });

@@ -54,7 +54,7 @@ interface ResponseError {
  * - Business logic errors from backend
  * - Unknown errors with descriptive messages
  */
-export const apiInstance = async <T>({
+export const httpInstance = async <T>({
   method = 'GET',
   path,
   body,
