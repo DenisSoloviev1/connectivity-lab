@@ -1,8 +1,6 @@
-import { io, Socket } from 'socket.io-client';
-// import { getCookie } from '../utils/cookie';
+import { io, Socket } from "socket.io-client";
 
-const API_BASE_SOCKET_URL = import.meta.env.VITE_PUBLIC_API_SOCKET_URL || '';
-
+const API_BASE_URL = import.meta.env.VITE_PUBLIC_API_URL;
 /**
  * Singleton class for managing WebSocket connections using Socket.IO
  * Provides connection management, message queuing, and room functionality
@@ -71,7 +69,12 @@ class SocketInstance {
       if (this.messageQueue.length >= this.maxQueueSize) {
         this.messageQueue.shift();
       }
-      this.messageQueue.push({ event, data, callback, timestamp: Date.now() });
+      this.messageQueue.push({
+        event,
+        data,
+        callback,
+        timestamp: Date.now(),
+      });
     }
   }
 
@@ -83,7 +86,7 @@ class SocketInstance {
     this.connect();
 
     if (this.socket && !this.joinedRooms.has(roomId)) {
-      this.socket.emit('room:join', { roomId });
+      this.socket.emit("room:join", { roomId });
       this.joinedRooms.add(roomId);
     }
   }
@@ -96,7 +99,7 @@ class SocketInstance {
     this.connect();
 
     if (this.socket && this.joinedRooms.has(roomId)) {
-      this.socket.emit('room:leave', { roomId });
+      this.socket.emit("room:leave", { roomId });
       this.joinedRooms.delete(roomId);
     }
   }
@@ -128,33 +131,32 @@ class SocketInstance {
    */
   private connect() {
     if (!this.socket) {
-      this.socket = io(`${API_BASE_SOCKET_URL}`, {
-        // auth: (cb) => cb({ token: getCookie('token') }),
+      this.socket = io(`${API_BASE_URL}`, {
         reconnectionAttempts: 10,
         reconnectionDelay: 3000,
         reconnectionDelayMax: 30000,
         randomizationFactor: 0.5,
         withCredentials: true,
-        transports: ['websocket', 'polling'],
+        transports: ["websocket", "polling"],
       });
 
-      this.socket.on('connect_error', (err) => {
-        console.error('Connect error:', err.message);
+      this.socket.on("connect_error", (err) => {
+        console.error("Connect error:", err.message);
       });
 
-      this.socket.on('connect', () => {
-        console.log('✅ Socket connected');
+      this.socket.on("connect", () => {
+        console.log("✅ Socket connected");
         this.flushQueue();
         this.restoreJoinedRooms();
       });
 
-      this.socket.on('reconnect_failed', () => {
-        console.error('❌ Reconnect failed after 10 attempts');
+      this.socket.on("reconnect_failed", () => {
+        console.error("❌ Reconnect failed after 10 attempts");
         this.close();
       });
 
-      this.socket.on('disconnect', () => {
-        console.log('❌ Socket disconnected');
+      this.socket.on("disconnect", () => {
+        console.log("❌ Socket disconnected");
       });
     }
   }
@@ -166,7 +168,7 @@ class SocketInstance {
    */
   private flushQueue() {
     this.messageQueue = this.messageQueue.filter(
-      (message) => Date.now() - message.timestamp < this.queueTimeoutMs
+      (message) => Date.now() - message.timestamp < this.queueTimeoutMs,
     );
     this.messageQueue.forEach(({ event, data, callback }) => {
       this.socket?.emit(event, data, callback);
@@ -182,7 +184,7 @@ class SocketInstance {
     if (!this.socket) return;
 
     this.joinedRooms.forEach((roomId) => {
-      this.socket?.emit('room:join', { roomId });
+      this.socket?.emit("room:join", { roomId });
     });
   }
 }
